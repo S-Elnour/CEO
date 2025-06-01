@@ -5,16 +5,20 @@ const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 // API Helper Functions
 const api = {
-  async getCountries() {
-    const response = await fetch(`${API_BASE_URL}/api/countries`);
+  async getIndustries() {
+    const response = await fetch(`${API_BASE_URL}/api/industries`);
     return response.json();
   },
   
-  async createPlayer(name, countryName) {
-    const response = await fetch(`${API_BASE_URL}/api/player`, {
+  async createCompany(playerName, companyName, industry) {
+    const response = await fetch(`${API_BASE_URL}/api/company`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, country_name: countryName })
+      body: JSON.stringify({ 
+        player_name: playerName, 
+        company_name: companyName, 
+        industry: industry 
+      })
     });
     return response.json();
   },
@@ -40,218 +44,122 @@ const api = {
   async getLeaderboard() {
     const response = await fetch(`${API_BASE_URL}/api/leaderboard`);
     return response.json();
-  },
-  
-  async getHistoricalFacts() {
-    const response = await fetch(`${API_BASE_URL}/api/educational-content/facts`);
-    return response.json();
-  },
-  
-  async getAnalytics(playerId) {
-    const response = await fetch(`${API_BASE_URL}/api/analytics/${playerId}`);
-    return response.json();
   }
 };
 
-// Helper function to get decision type emoji and color
+// Helper functions for business decision types
 const getDecisionTypeInfo = (type) => {
   const types = {
-    trade: { emoji: '🌍', color: 'blue', name: 'Trade' },
-    cultural: { emoji: '🎭', color: 'purple', name: 'Cultural' },
-    environmental: { emoji: '🌱', color: 'green', name: 'Environmental' },
-    business: { emoji: '💼', color: 'indigo', name: 'Business' },
-    manufacturing: { emoji: '🏭', color: 'orange', name: 'Manufacturing' },
-    logistics: { emoji: '🚢', color: 'cyan', name: 'Logistics' },
-    human_resources: { emoji: '👥', color: 'pink', name: 'Human Resources' },
-    marketing: { emoji: '📢', color: 'yellow', name: 'Marketing'
-    }
+    materials: { emoji: '📦', color: 'orange', name: 'Materials', description: 'Supply chain and sourcing decisions' },
+    logistics: { emoji: '🚚', color: 'blue', name: 'Logistics', description: 'Shipping and distribution strategies' },
+    workforce: { emoji: '👥', color: 'green', name: 'Workforce', description: 'Human resources and talent management' },
+    marketing: { emoji: '📈', color: 'purple', name: 'Marketing', description: 'Brand building and customer acquisition' },
+    finance: { emoji: '💰', color: 'yellow', name: 'Finance', description: 'Investment and capital allocation' },
+    expansion: { emoji: '🌍', color: 'red', name: 'Expansion', description: 'Growth and scaling strategies' }
   };
-  return types[type] || { emoji: '❓', color: 'gray', name: 'Unknown' };
+  return types[type] || { emoji: '❓', color: 'gray', name: 'Unknown', description: 'General business decision' };
 };
 
 // Components
-const CountrySelection = ({ countries, onSelectCountry, playerName, setPlayerName }) => (
-  <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 flex items-center justify-center p-4">
-    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">🌍 Global Dynamics</h1>
-        <p className="text-lg text-gray-600">Advanced Globalization Business Simulation</p>
-        <p className="text-sm text-gray-500 mt-2">Make strategic decisions in trade, manufacturing, logistics, and more!</p>
-      </div>
-      
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-          <input
-            type="text"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter your name"
-          />
+const CompanySetup = ({ industries, onCreateCompany }) => {
+  const [playerName, setPlayerName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('');
+  
+  const handleSubmit = () => {
+    if (playerName.trim() && companyName.trim() && selectedIndustry) {
+      onCreateCompany(playerName, companyName, selectedIndustry);
+    }
+  };
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold text-gray-800 mb-4">🏢 Business Empire</h1>
+          <p className="text-xl text-gray-600">Build Your Business. Make Strategic Decisions. Dominate Markets.</p>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-4">Choose Your Country</label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {countries.map((country) => (
-              <button
-                key={country.name}
-                onClick={() => onSelectCountry(country.name)}
-                disabled={!playerName.trim()}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 text-left disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="font-semibold text-gray-800">{country.name}</div>
-                <div className="text-sm text-gray-600">{country.region}</div>
-              </button>
-            ))}
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+            <input
+              type="text"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+              placeholder="Enter your name"
+            />
           </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+            <input
+              type="text"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+              placeholder="Enter your company name"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-4">Choose Your Industry</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {industries.map((industry) => (
+                <button
+                  key={industry.name}
+                  onClick={() => setSelectedIndustry(industry.name)}
+                  className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                    selectedIndustry === industry.name
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="font-semibold text-gray-800">{industry.name}</div>
+                  <div className="text-sm text-gray-600">{industry.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <button
+            onClick={handleSubmit}
+            disabled={!playerName.trim() || !companyName.trim() || !selectedIndustry}
+            className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            🚀 Start Your Business Empire
+          </button>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-const IndicatorCard = ({ title, value, unit, color, icon, description }) => (
-  <div className={`bg-white rounded-lg shadow-md p-4 border-l-4 ${color} hover:shadow-lg transition-shadow duration-200`}>
+const MetricCard = ({ title, value, unit, icon, trend, color = "blue" }) => (
+  <div className={`bg-white rounded-xl shadow-lg p-6 border-l-4 border-${color}-500 hover:shadow-xl transition-shadow duration-200`}>
     <div className="flex items-center justify-between">
       <div className="flex-1">
-        <h3 className="text-sm font-medium text-gray-600">{title}</h3>
-        <p className="text-2xl font-bold text-gray-800">
-          {typeof value === 'number' ? value.toFixed(1) : value}{unit}
+        <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">{title}</h3>
+        <p className="text-3xl font-bold text-gray-800 mt-2">
+          {typeof value === 'number' ? 
+            (value >= 1000 ? `${(value/1000).toFixed(1)}K` : value.toFixed(1)) 
+            : value
+          }{unit}
         </p>
-        {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
+        {trend && (
+          <p className={`text-sm mt-1 flex items-center ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {trend > 0 ? '↗️' : '↘️'} {Math.abs(trend).toFixed(1)}%
+          </p>
+        )}
       </div>
-      <div className="text-2xl">{icon}</div>
+      <div className="text-4xl opacity-80">{icon}</div>
     </div>
   </div>
 );
 
-const BusinessMetricsPanel = ({ country }) => (
-  <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-    <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-      <span className="mr-2">🏢</span>
-      Business & Operations Dashboard
-    </h2>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {/* Business Indicators */}
-      <IndicatorCard
-        title="Profit Margin"
-        value={country.business_indicators.profit_margin}
-        unit="%"
-        color="border-green-500"
-        icon="💰"
-        description="Current profitability"
-      />
-      <IndicatorCard
-        title="Market Share"
-        value={country.business_indicators.market_share}
-        unit="%"
-        color="border-blue-500"
-        icon="📊"
-        description="Global market position"
-      />
-      <IndicatorCard
-        title="Brand Reputation"
-        value={country.business_indicators.brand_reputation}
-        unit=""
-        color="border-purple-500"
-        icon="⭐"
-        description="Brand perception score"
-      />
-      <IndicatorCard
-        title="Innovation Index"
-        value={country.business_indicators.innovation_index}
-        unit=""
-        color="border-indigo-500"
-        icon="💡"
-        description="Innovation capability"
-      />
-    </div>
-    
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Manufacturing Metrics */}
-      <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-        <h3 className="font-semibold text-orange-800 mb-3 flex items-center">
-          <span className="mr-2">🏭</span>Manufacturing
-        </h3>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Employees:</span>
-            <span className="font-semibold">{country.manufacturing_metrics.total_employees.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Avg Salary:</span>
-            <span className="font-semibold">${country.manufacturing_metrics.average_salary.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Automation:</span>
-            <span className="font-semibold">{country.manufacturing_metrics.automation_level.toFixed(1)}%</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Production:</span>
-            <span className="font-semibold">{country.manufacturing_metrics.production_capacity.toFixed(0)} units/day</span>
-          </div>
-        </div>
-      </div>
-      
-      {/* Logistics Metrics */}
-      <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
-        <h3 className="font-semibold text-cyan-800 mb-3 flex items-center">
-          <span className="mr-2">🚢</span>Logistics
-        </h3>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Shipping Cost:</span>
-            <span className="font-semibold">${country.logistics_metrics.shipping_cost_per_unit.toFixed(2)}/unit</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Delivery Time:</span>
-            <span className="font-semibold">{country.logistics_metrics.delivery_time_days.toFixed(1)} days</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Efficiency:</span>
-            <span className="font-semibold">{country.logistics_metrics.logistics_efficiency.toFixed(1)}%</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Carbon Impact:</span>
-            <span className="font-semibold">{country.logistics_metrics.carbon_footprint_shipping.toFixed(1)}</span>
-          </div>
-        </div>
-      </div>
-      
-      {/* Marketing Metrics */}
-      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-        <h3 className="font-semibold text-yellow-800 mb-3 flex items-center">
-          <span className="mr-2">📢</span>Marketing
-        </h3>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Annual Spend:</span>
-            <span className="font-semibold">${(country.marketing_metrics.marketing_spend / 1000).toFixed(0)}K</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Brand Awareness:</span>
-            <span className="font-semibold">{country.marketing_metrics.brand_awareness.toFixed(1)}%</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Acquisition Cost:</span>
-            <span className="font-semibold">${country.marketing_metrics.customer_acquisition_cost.toFixed(0)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Global Presence:</span>
-            <span className="font-semibold">{country.marketing_metrics.global_market_presence.toFixed(1)}%</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const GameDashboard = ({ gameState, onMakeDecision, onViewLeaderboard, onViewFacts, onViewAnalytics }) => {
-  const { player, country, current_scenario } = gameState;
-  const [selectedChoice, setSelectedChoice] = useState(null);
+const BusinessDashboard = ({ gameState, onMakeDecision, onViewLeaderboard }) => {
+  const { player, company, current_scenario, monthly_report } = gameState;
   const [showDecisionResult, setShowDecisionResult] = useState(false);
   const [decisionResult, setDecisionResult] = useState(null);
   
@@ -263,7 +171,7 @@ const GameDashboard = ({ gameState, onMakeDecision, onViewLeaderboard, onViewFac
       setTimeout(() => {
         setShowDecisionResult(false);
         onMakeDecision(); // Refresh game state
-      }, 6000);
+      }, 5000);
     } catch (error) {
       console.error('Error making decision:', error);
     }
@@ -273,62 +181,57 @@ const GameDashboard = ({ gameState, onMakeDecision, onViewLeaderboard, onViewFac
     return (
       <div className="min-h-screen bg-gray-100 p-4">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">Decision Results</h2>
+          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center">
+            <h2 className="text-4xl font-bold text-gray-800 mb-6">Decision Results</h2>
             
-            <div className="mb-6">
-              <div className="text-6xl mb-4">🎯</div>
-              <p className="text-xl text-gray-600">You gained {decisionResult.score_gained} points!</p>
+            <div className="mb-8">
+              <div className="text-7xl mb-4">
+                {decisionResult.success_score >= 80 ? '🎉' : 
+                 decisionResult.success_score >= 60 ? '👍' : 
+                 decisionResult.success_score >= 40 ? '🤔' : '😬'}
+              </div>
+              <div className="text-2xl font-semibold text-gray-700 mb-2">
+                Decision Success: {decisionResult.success_score.toFixed(1)}/100
+              </div>
+              <p className="text-xl text-blue-600">+{decisionResult.xp_gained} Experience Points!</p>
               {decisionResult.level_up && (
-                <p className="text-lg text-green-600 font-semibold mt-2">🎊 Level Up! You're now level {player.level + 1}!</p>
-              )}
-              {decisionResult.achievements && decisionResult.achievements.length > 0 && (
-                <p className="text-lg text-yellow-600 font-semibold mt-2">
-                  🏆 Achievement Unlocked: {decisionResult.achievements[decisionResult.achievements.length - 1]}
+                <p className="text-lg text-green-600 font-semibold mt-2">
+                  🎊 Level Up! You're now level {player.level + 1}!
                 </p>
               )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {Object.entries(decisionResult.consequences).map(([key, value]) => (
-                <div key={key} className={`p-4 rounded-lg ${value > 0 ? 'bg-green-50 border border-green-200' : value < 0 ? 'bg-red-50 border border-red-200' : 'bg-gray-50 border border-gray-200'}`}>
-                  <h3 className={`font-semibold text-sm ${value > 0 ? 'text-green-800' : value < 0 ? 'text-red-800' : 'text-gray-800'}`}>
-                    {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                  </h3>
-                  <p className={`text-lg font-bold ${value > 0 ? 'text-green-600' : value < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                    {value > 0 ? '+' : ''}{value}
-                  </p>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                <h3 className="font-semibold text-green-800 mb-2">📊 Monthly Revenue</h3>
+                <p className="text-2xl font-bold text-green-600">
+                  ${decisionResult.monthly_report.monthly_revenue.toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                <h3 className="font-semibold text-blue-800 mb-2">💰 Monthly Profit</h3>
+                <p className="text-2xl font-bold text-blue-600">
+                  ${decisionResult.monthly_report.monthly_profit.toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                <h3 className="font-semibold text-purple-800 mb-2">📈 Profit Margin</h3>
+                <p className="text-2xl font-bold text-purple-600">
+                  {decisionResult.monthly_report.profit_margin.toFixed(1)}%
+                </p>
+              </div>
             </div>
             
-            {decisionResult.educational_content && (
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg mb-6 text-left">
-                <h3 className="font-semibold text-blue-800 mb-4 flex items-center">
-                  <span className="mr-2">📚</span>Educational Insights
+            {decisionResult.learning_objective && (
+              <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 mb-6 text-left">
+                <h3 className="font-semibold text-yellow-800 mb-2 flex items-center">
+                  <span className="mr-2">💡</span>Learning Objective
                 </h3>
-                <p className="text-blue-700 mb-4">{decisionResult.educational_content.scenario_context}</p>
-                
-                <div className="bg-white p-4 rounded-lg mb-4">
-                  <h4 className="font-semibold text-gray-800 flex items-center mb-2">
-                    <span className="mr-2">🕰️</span>{decisionResult.educational_content.historical_fact.title}
-                  </h4>
-                  <p className="text-sm text-gray-600">{decisionResult.educational_content.historical_fact.content}</p>
-                </div>
-                
-                {decisionResult.educational_content.trivia_question && (
-                  <div className="bg-yellow-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-yellow-800 mb-2">💡 Quick Quiz</h4>
-                    <p className="text-sm text-yellow-700 mb-2">{decisionResult.educational_content.trivia_question.question}</p>
-                    <p className="text-xs text-yellow-600">
-                      Answer: {decisionResult.educational_content.trivia_question.options[decisionResult.educational_content.trivia_question.correct_answer]}
-                    </p>
-                  </div>
-                )}
+                <p className="text-yellow-700">{decisionResult.learning_objective}</p>
               </div>
             )}
             
-            <p className="text-gray-500">Loading next scenario...</p>
+            <p className="text-gray-500">Preparing next business challenge...</p>
           </div>
         </div>
       </div>
@@ -339,64 +242,55 @@ const GameDashboard = ({ gameState, onMakeDecision, onViewLeaderboard, onViewFac
   
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Enhanced Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      {/* Header */}
+      <div className="bg-white shadow-lg border-b">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">🌍 Global Dynamics</h1>
-              <p className="text-gray-600">{player.name} - {country.name}</p>
+              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+                <span className="mr-3">🏢</span>
+                {company.name}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {player.name} • {company.industry} • Level {player.level}
+              </p>
             </div>
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-8">
               <div className="text-center">
-                <div className="text-sm text-gray-600">Score</div>
-                <div className="text-xl font-bold text-blue-600">{player.score}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-gray-600">Level</div>
-                <div className="text-xl font-bold text-green-600">{player.level}</div>
+                <div className="text-sm text-gray-600">Experience</div>
+                <div className="text-xl font-bold text-purple-600">{player.experience_points}</div>
               </div>
               <div className="text-center">
                 <div className="text-sm text-gray-600">Decisions</div>
-                <div className="text-xl font-bold text-purple-600">{player.decisions_made}</div>
+                <div className="text-xl font-bold text-blue-600">{player.total_decisions}</div>
               </div>
               <div className="text-center">
-                <div className="text-sm text-gray-600">Experience</div>
-                <div className="text-xl font-bold text-orange-600">{player.business_experience || 0}</div>
+                <div className="text-sm text-gray-600">Success Rate</div>
+                <div className="text-xl font-bold text-green-600">
+                  {player.total_decisions > 0 ? 
+                    ((player.successful_decisions / player.total_decisions) * 100).toFixed(1) 
+                    : 0}%
+                </div>
               </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={onViewAnalytics}
-                  className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm"
-                >
-                  📊 Analytics
-                </button>
-                <button
-                  onClick={onViewLeaderboard}
-                  className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                >
-                  🏆 Leaderboard
-                </button>
-                <button
-                  onClick={onViewFacts}
-                  className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
-                >
-                  📚 Learn
-                </button>
-              </div>
+              <button
+                onClick={onViewLeaderboard}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
+              >
+                🏆 Leaderboard
+              </button>
             </div>
           </div>
         </div>
       </div>
       
       <div className="max-w-7xl mx-auto p-6">
-        {/* Achievements Display */}
+        {/* Achievements */}
         {player.achievements && player.achievements.length > 0 && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-3">🏆 Your Achievements</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {player.achievements.map((achievement, index) => (
-                <span key={index} className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                <span key={index} className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-full text-sm font-medium shadow-lg">
                   {achievement}
                 </span>
               ))}
@@ -404,207 +298,200 @@ const GameDashboard = ({ gameState, onMakeDecision, onViewLeaderboard, onViewFac
           </div>
         )}
         
-        {/* Business Metrics Panel */}
-        <BusinessMetricsPanel country={country} />
-        
-        {/* Traditional Indicators */}
+        {/* Monthly Performance */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Core Country Indicators</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <IndicatorCard
-              title="GDP"
-              value={country.economic_indicators.gdp}
-              unit="B"
-              color="border-blue-500"
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">📊 Monthly Performance</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricCard
+              title="Revenue"
+              value={monthly_report.monthly_revenue}
+              unit=""
               icon="💰"
+              color="green"
             />
-            <IndicatorCard
-              title="Unemployment"
-              value={country.economic_indicators.unemployment}
-              unit="%"
-              color="border-red-500"
-              icon="📊"
-            />
-            <IndicatorCard
-              title="Carbon Emissions"
-              value={country.environmental_indicators.carbon_emissions}
+            <MetricCard
+              title="Profit"
+              value={monthly_report.monthly_profit}
               unit=""
-              color="border-orange-500"
-              icon="🏭"
-            />
-            <IndicatorCard
-              title="Cultural Openness"
-              value={country.cultural_indicators.cultural_openness}
-              unit=""
-              color="border-purple-500"
-              icon="🌐"
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <IndicatorCard
-              title="Trade Balance"
-              value={country.economic_indicators.trade_balance}
-              unit=""
-              color="border-green-500"
               icon="📈"
+              color="blue"
             />
-            <IndicatorCard
-              title="Sustainability Score"
-              value={country.environmental_indicators.sustainability_score}
-              unit=""
-              color="border-emerald-500"
-              icon="🌱"
+            <MetricCard
+              title="Profit Margin"
+              value={monthly_report.profit_margin}
+              unit="%"
+              icon="📊"
+              color="purple"
             />
-            <IndicatorCard
-              title="Employee Satisfaction"
-              value={country.business_indicators.employee_satisfaction}
+            <MetricCard
+              title="Units Sold"
+              value={monthly_report.units_sold}
               unit=""
-              color="border-pink-500"
-              icon="😊"
+              icon="📦"
+              color="orange"
             />
           </div>
         </div>
         
-        {/* Enhanced Current Scenario */}
+        {/* Business Metrics */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">🏢 Business Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricCard
+              title="Cash"
+              value={company.business_metrics.cash}
+              unit=""
+              icon="💵"
+              color="green"
+            />
+            <MetricCard
+              title="Market Share"
+              value={company.business_metrics.market_share}
+              unit="%"
+              icon="🎯"
+              color="blue"
+            />
+            <MetricCard
+              title="Reputation"
+              value={company.business_metrics.reputation}
+              unit=""
+              icon="⭐"
+              color="yellow"
+            />
+            <MetricCard
+              title="Efficiency"
+              value={company.business_metrics.efficiency}
+              unit="%"
+              icon="⚡"
+              color="purple"
+            />
+          </div>
+        </div>
+        
+        {/* Operational Metrics */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Production */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <span className="mr-2">🏭</span>Production
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Capacity:</span>
+                <span className="font-semibold">{company.production_metrics.production_capacity} units</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Material Cost:</span>
+                <span className="font-semibold">${company.production_metrics.material_cost_per_unit}/unit</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Quality Score:</span>
+                <span className="font-semibold">{company.production_metrics.quality_score.toFixed(1)}/100</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Production Time:</span>
+                <span className="font-semibold">{company.production_metrics.production_time_days} days</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Workforce */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <span className="mr-2">👥</span>Workforce
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Employees:</span>
+                <span className="font-semibold">{company.workforce_metrics.total_employees}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Avg Salary:</span>
+                <span className="font-semibold">${(company.workforce_metrics.average_salary/1000).toFixed(1)}K</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Satisfaction:</span>
+                <span className="font-semibold">{company.workforce_metrics.employee_satisfaction.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Productivity:</span>
+                <span className="font-semibold">{company.workforce_metrics.productivity.toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Marketing */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <span className="mr-2">📢</span>Marketing
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Brand Awareness:</span>
+                <span className="font-semibold">{company.marketing_metrics.brand_awareness.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Customer Loyalty:</span>
+                <span className="font-semibold">{company.marketing_metrics.customer_loyalty.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Monthly Budget:</span>
+                <span className="font-semibold">${(company.marketing_metrics.marketing_budget/1000).toFixed(1)}K</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Market Penetration:</span>
+                <span className="font-semibold">{company.marketing_metrics.market_penetration.toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Current Business Challenge */}
         {current_scenario && (
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="mb-6">
               <div className="flex items-center mb-4">
                 <span className={`inline-flex items-center px-4 py-2 bg-${decisionTypeInfo.color}-100 text-${decisionTypeInfo.color}-800 rounded-full text-sm font-medium mr-4`}>
                   <span className="mr-2">{decisionTypeInfo.emoji}</span>
-                  {decisionTypeInfo.name} Decision
-                </span>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  current_scenario.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                  current_scenario.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {current_scenario.difficulty.toUpperCase()}
+                  {decisionTypeInfo.name} Challenge
                 </span>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">{current_scenario.title}</h2>
-              <p className="text-gray-600 text-lg leading-relaxed">{current_scenario.description}</p>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">{current_scenario.title}</h2>
+              <p className="text-gray-600 text-lg leading-relaxed mb-4">{current_scenario.description}</p>
+              <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                <p className="text-blue-800 font-medium">Current Situation:</p>
+                <p className="text-blue-700">{current_scenario.current_situation}</p>
+              </div>
             </div>
             
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800">What will you do?</h3>
+              <h3 className="text-xl font-semibold text-gray-800">Choose your strategy:</h3>
               {current_scenario.choices.map((choice, index) => (
                 <button
                   key={index}
                   onClick={() => handleDecision(index)}
-                  className="w-full p-6 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 group"
+                  className="w-full p-6 text-left border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 group"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-800 group-hover:text-blue-800 font-medium">{choice.text}</span>
-                    <span className="text-blue-500 group-hover:text-blue-700 text-xl">→</span>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <span className="text-gray-800 group-hover:text-blue-800 font-medium text-lg">
+                        {choice.text}
+                      </span>
+                    </div>
+                    <span className="text-blue-500 group-hover:text-blue-700 text-2xl ml-4">→</span>
                   </div>
                 </button>
               ))}
             </div>
             
-            {current_scenario.historical_context && (
-              <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <h4 className="font-semibold text-yellow-800 mb-2 flex items-center">
-                  <span className="mr-2">🕰️</span>Historical Context
-                </h4>
-                <p className="text-yellow-700 text-sm">{current_scenario.historical_context}</p>
-              </div>
-            )}
+            <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <h4 className="font-semibold text-yellow-800 mb-2 flex items-center">
+                <span className="mr-2">🎯</span>Learning Focus
+              </h4>
+              <p className="text-yellow-700 text-sm">{current_scenario.learning_objective}</p>
+            </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-};
-
-const Analytics = ({ playerId, playerName, onBack }) => {
-  const [analytics, setAnalytics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    const loadAnalytics = async () => {
-      try {
-        const data = await api.getAnalytics(playerId);
-        setAnalytics(data);
-      } catch (error) {
-        console.error('Error loading analytics:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadAnalytics();
-  }, [playerId]);
-  
-  return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">📊 {playerName}'s Analytics</h1>
-            <button
-              onClick={onBack}
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              ← Back to Game
-            </button>
-          </div>
-          
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="text-gray-500">Loading analytics...</div>
-            </div>
-          ) : analytics ? (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <h3 className="text-xl font-semibold text-blue-800 mb-4">Decision Summary</h3>
-                  <p className="text-3xl font-bold text-blue-600 mb-2">{analytics.total_decisions}</p>
-                  <p className="text-blue-700">Total Decisions Made</p>
-                </div>
-                
-                <div className="bg-green-50 p-6 rounded-lg">
-                  <h3 className="text-xl font-semibold text-green-800 mb-4">Experience Areas</h3>
-                  <div className="space-y-2">
-                    {Object.entries(analytics.experience_by_category).map(([category, count]) => {
-                      const info = getDecisionTypeInfo(category);
-                      return (
-                        <div key={category} className="flex items-center justify-between">
-                          <span className="flex items-center">
-                            <span className="mr-2">{info.emoji}</span>
-                            {info.name}
-                          </span>
-                          <span className="font-semibold">{count}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-purple-50 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold text-purple-800 mb-4">Decision Breakdown</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {Object.entries(analytics.decision_breakdown).map(([type, count]) => {
-                    const info = getDecisionTypeInfo(type);
-                    return (
-                      <div key={type} className="text-center p-4 bg-white rounded-lg">
-                        <div className="text-2xl mb-2">{info.emoji}</div>
-                        <div className="font-semibold text-gray-800">{count}</div>
-                        <div className="text-sm text-gray-600">{info.name}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-500">No analytics data available</div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
@@ -631,15 +518,15 @@ const Leaderboard = ({ onBack }) => {
   
   return (
     <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-3xl shadow-2xl p-8">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">🏆 Global Leaders</h1>
+            <h1 className="text-4xl font-bold text-gray-800">🏆 Business Empire Leaderboard</h1>
             <button
               onClick={onBack}
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
             >
-              ← Back to Game
+              ← Back to Dashboard
             </button>
           </div>
           
@@ -649,118 +536,32 @@ const Leaderboard = ({ onBack }) => {
             </div>
           ) : (
             <div className="space-y-4">
-              {leaderboard.map((player, index) => (
+              {leaderboard.map((entry, index) => (
                 <div
                   key={index}
-                  className={`flex items-center justify-between p-6 rounded-lg ${
-                    index === 0 ? 'bg-yellow-50 border-2 border-yellow-200' :
-                    index === 1 ? 'bg-gray-50 border-2 border-gray-200' :
-                    index === 2 ? 'bg-orange-50 border-2 border-orange-200' :
+                  className={`flex items-center justify-between p-6 rounded-xl ${
+                    index === 0 ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-300' :
+                    index === 1 ? 'bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-300' :
+                    index === 2 ? 'bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300' :
                     'bg-white border border-gray-200'
                   }`}
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className="text-3xl">
+                  <div className="flex items-center space-x-6">
+                    <div className="text-4xl">
                       {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-800 text-lg">{player.name}</div>
-                      <div className="text-sm text-gray-600">
-                        {player.decisions_made} decisions • {player.business_experience || 0} business experience
-                      </div>
-                      {player.achievements && player.achievements.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {player.achievements.slice(0, 3).map((achievement, i) => (
-                            <span key={i} className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                              {achievement}
-                            </span>
-                          ))}
-                          {player.achievements.length > 3 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                              +{player.achievements.length - 3} more
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      <div className="font-bold text-xl text-gray-800">{entry.company_name}</div>
+                      <div className="text-gray-600">CEO: {entry.player_name}</div>
+                      <div className="text-sm text-gray-500">{entry.industry} • Level {entry.level}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-blue-600">{player.score}</div>
-                    <div className="text-sm text-gray-600">Level {player.level}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const EducationalContent = ({ onBack }) => {
-  const [facts, setFacts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    const loadFacts = async () => {
-      try {
-        const data = await api.getHistoricalFacts();
-        setFacts(data);
-      } catch (error) {
-        console.error('Error loading facts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadFacts();
-  }, []);
-  
-  return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">📚 Learn About Globalization</h1>
-            <button
-              onClick={onBack}
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              ← Back to Game
-            </button>
-          </div>
-          
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="text-gray-500">Loading educational content...</div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {facts.map((fact, index) => (
-                <div key={index} className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border-l-4 border-blue-500">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">{fact.title}</h3>
-                  {fact.year && (
-                    <div className="text-sm text-blue-600 mb-2">
-                      📅 {fact.year > 0 ? `${fact.year} CE` : `${Math.abs(fact.year)} BCE`}
+                    <div className="text-2xl font-bold text-green-600">
+                      ${(entry.monthly_revenue/1000).toFixed(1)}K/mo
                     </div>
-                  )}
-                  <p className="text-gray-700 leading-relaxed mb-3">{fact.content}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      fact.category === 'manufacturing' ? 'bg-orange-100 text-orange-800' :
-                      fact.category === 'logistics' ? 'bg-cyan-100 text-cyan-800' :
-                      fact.category === 'marketing' ? 'bg-yellow-100 text-yellow-800' :
-                      fact.category === 'human_resources' ? 'bg-pink-100 text-pink-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
-                      {fact.category.replace(/_/g, ' ')}
-                    </span>
-                    {fact.relevance_tags.map((tag, tagIndex) => (
-                      <span key={tagIndex} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                        {tag.replace(/_/g, ' ')}
-                      </span>
-                    ))}
+                    <div className="text-sm text-gray-600">{entry.experience_points} XP</div>
+                    <div className="text-sm text-blue-600">{entry.success_rate.toFixed(1)}% Success Rate</div>
                   </div>
                 </div>
               ))}
@@ -774,38 +575,35 @@ const EducationalContent = ({ onBack }) => {
 
 // Main App Component
 const App = () => {
-  const [gamePhase, setGamePhase] = useState('country-selection'); // country-selection, game, leaderboard, education, analytics
-  const [countries, setCountries] = useState([]);
+  const [gamePhase, setGamePhase] = useState('setup'); // setup, game, leaderboard
+  const [industries, setIndustries] = useState([]);
   const [player, setPlayer] = useState(null);
-  const [playerName, setPlayerName] = useState('');
   const [gameState, setGameState] = useState(null);
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
-    const loadCountries = async () => {
+    const loadIndustries = async () => {
       try {
-        const data = await api.getCountries();
-        setCountries(data);
+        const data = await api.getIndustries();
+        setIndustries(data);
       } catch (error) {
-        console.error('Error loading countries:', error);
+        console.error('Error loading industries:', error);
       }
     };
     
-    loadCountries();
+    loadIndustries();
   }, []);
   
-  const handleCountrySelection = async (countryName) => {
-    if (!playerName.trim()) return;
-    
+  const handleCreateCompany = async (playerName, companyName, industry) => {
     setLoading(true);
     try {
-      const newPlayer = await api.createPlayer(playerName, countryName);
+      const newPlayer = await api.createCompany(playerName, companyName, industry);
       setPlayer(newPlayer);
       const state = await api.getGameState(newPlayer.id);
       setGameState(state);
       setGamePhase('game');
     } catch (error) {
-      console.error('Error creating player:', error);
+      console.error('Error creating company:', error);
     } finally {
       setLoading(false);
     }
@@ -826,30 +624,18 @@ const App = () => {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">🌍</div>
-          <div className="text-xl text-gray-600">Loading Global Dynamics...</div>
+          <div className="text-6xl mb-4">🏢</div>
+          <div className="text-2xl text-gray-600">Building Your Business Empire...</div>
         </div>
       </div>
     );
   }
   
-  if (gamePhase === 'country-selection') {
+  if (gamePhase === 'setup') {
     return (
-      <CountrySelection
-        countries={countries}
-        onSelectCountry={handleCountrySelection}
-        playerName={playerName}
-        setPlayerName={setPlayerName}
-      />
-    );
-  }
-  
-  if (gamePhase === 'analytics') {
-    return (
-      <Analytics
-        playerId={player.id}
-        playerName={player.name}
-        onBack={() => setGamePhase('game')}
+      <CompanySetup
+        industries={industries}
+        onCreateCompany={handleCreateCompany}
       />
     );
   }
@@ -858,18 +644,12 @@ const App = () => {
     return <Leaderboard onBack={() => setGamePhase('game')} />;
   }
   
-  if (gamePhase === 'education') {
-    return <EducationalContent onBack={() => setGamePhase('game')} />;
-  }
-  
   if (gamePhase === 'game' && gameState) {
     return (
-      <GameDashboard
+      <BusinessDashboard
         gameState={gameState}
         onMakeDecision={refreshGameState}
         onViewLeaderboard={() => setGamePhase('leaderboard')}
-        onViewFacts={() => setGamePhase('education')}
-        onViewAnalytics={() => setGamePhase('analytics')}
       />
     );
   }
